@@ -25,3 +25,9 @@ api.nio-perov.com {
 	}
 	reverse_proxy nio-perov-server:4200
 }
+
+# portainer
+portainer.nio-perov.com {
+	encode zstd gzip
+	reverse_proxy portainer:9443
+}
