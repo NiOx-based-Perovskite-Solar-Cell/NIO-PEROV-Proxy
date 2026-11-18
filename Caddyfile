@@ -1,0 +1,27 @@
+# Caddy ขอ / ต่ออายุ HTTPS certificate ให้ทุก domain ด้านล่างเอง และ redirect http -> https ให้อัตโนมัติ
+# ชี้ไปที่ชื่อ container + port ภายใน (อยู่ใน network nio-perov-net เดียวกัน)
+
+{
+	# อีเมลสำหรับแจ้งเตือนเรื่อง certificate จาก Let's Encrypt (ไม่ใส่ก็ได้)
+	email wachirawit.prem.work@gmail.com
+}
+
+# client (Next.js)
+nio-perov.com {
+	encode zstd gzip
+	reverse_proxy nio-perov-client:4100
+}
+
+www.nio-perov.com {
+	redir https://nio-perov.com{uri} permanent
+}
+
+# server (NestJS API + Google OAuth callback)
+api.nio-perov.com {
+	encode zstd gzip
+	# ให้ upload ไฟล์ Excel ได้ (ตรงกับ MINIO_MAX_FILE_SIZE_MB=50 + เผื่อ)
+	request_body {
+		max_size 60MB
+	}
+	reverse_proxy nio-perov-server:4200
+}

@@ -1,0 +1,31 @@
+# Reverse proxy + HTTPS อัตโนมัติ (Let's Encrypt) ด้วย Caddy
+# รันแยก:  docker compose up -d   (ใน folder nio-perov-proxy)
+# ต้องมี network:  docker network create nio-perov-net
+# ก่อนรัน: ตั้ง DNS A record ของ nio-perov.com, www.nio-perov.com, api.nio-perov.com -> IP ของ VPS
+#          และเปิด port 80, 443 ที่ firewall (Caddy ใช้ port 80 ขอ certificate)
+# แก้ Caddyfile แล้ว reload ได้โดยไม่ต้อง restart:
+#   docker exec nio-perov-proxy caddy reload --config /etc/caddy/Caddyfile
+
+services:
+
+  nio-perov-proxy:
+    container_name: nio-perov-proxy
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    environment:
+      TZ: Asia/Bangkok
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy-data:/data     # certificate - ห้ามลบ ไม่งั้นต้องขอใหม่ (Let's Encrypt จำกัดจำนวนครั้ง)
+      - ./caddy-config:/config
+    networks:
+      - nio-perov-net
+
+networks:
+  nio-perov-net:
+    name: nio-perov-net
+    external: true
